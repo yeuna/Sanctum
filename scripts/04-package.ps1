@@ -54,7 +54,9 @@ if ($env:SANCTUM_SIGN_ALL -eq "1") {
 Write-Step "Creating portable ZIP"
 $outDir = Join-Path $RepoRoot "dist"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-$rev = (Push-Location $SrcDir; (git rev-parse --short HEAD); Pop-Location)
+Push-Location $SrcDir
+$rev = git rev-parse --short HEAD
+Pop-Location
 $zip = Join-Path $outDir ("Sanctum-{0}-win64.zip" -f $rev)
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path (Join-Path $appDir "*") -DestinationPath $zip

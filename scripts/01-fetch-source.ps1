@@ -38,6 +38,8 @@ if (Test-Path (Join-Path $SrcDir ".git")) {
 }
 
 Assert-SourceCheckout
-$rev = (Push-Location $SrcDir; git rev-parse --short HEAD; Pop-Location)
+Push-Location $SrcDir
+$rev = git rev-parse --short HEAD
+Pop-Location
 Write-Ok "Source ready at $SrcDir (HEAD $rev)"
 Write-Step "Fetch complete"
