@@ -36,8 +36,10 @@ else { Write-Ok "$freeGB GB free on $($drive.Name): (>= 40 GB recommended)" }
 # --- mach bootstrap ------------------------------------------------------
 if (Test-Path (Join-Path $SrcDir "mach")) {
     Write-Step "Running 'mach bootstrap' (Firefox for Desktop, artifact mode OFF)"
-    # '--application-choice browser' = Firefox for Desktop; no telemetry prompt path.
-    Invoke-Mach "bootstrap --application-choice browser --no-interactive"
+    # '--application-choice browser' = Firefox for Desktop; supplying it is what
+    # makes bootstrap non-interactive (it skips the app-selection prompt).
+    # '--no-system-changes' keeps bootstrap from trying interactive system tweaks.
+    Invoke-Mach "bootstrap --application-choice browser --no-system-changes"
     Write-Ok "Toolchain bootstrapped."
 } else {
     Write-Warn2 "No source checkout yet — skipping 'mach bootstrap'."
