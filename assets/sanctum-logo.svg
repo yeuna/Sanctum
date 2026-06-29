@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none" role="img" aria-label="Sanctum logo">
+  <defs>
+    <linearGradient id="g" x1="80" y1="14" x2="80" y2="146" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="0.55" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#9333EA"/>
+    </linearGradient>
+  </defs>
+  <!-- shield -->
+  <path fill="url(#g)"
+        d="M34 31c0-3.3 2.7-6 6-6h80c3.3 0 6 2.7 6 6v47c0 29-18 47.3-43 56.8a6 6 0 0 1-4 0C53 125.3 34 107 34 78V31Z"/>
+  <!-- keyhole -->
+  <path fill="#F5F3FF"
+        d="M80 50a15 15 0 0 0-8.5 27.3L66 102.5a3 3 0 0 0 2.94 3.6h22.12a3 3 0 0 0 2.94-3.6L88.5 77.3A15 15 0 0 0 80 50Z"/>
+</svg>

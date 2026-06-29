@@ -1,0 +1,104 @@
+{
+  "_comment": "Sanctum enterprise policy layer. Installed to <install dir>/distribution/policies.json. This is the third and most durable enforcement layer: unlike profile prefs it cannot be undone by deleting a profile, and unlike about:config it is read straight from disk at every launch. It hard-disables every Mozilla data-collection and phone-home feature at the policy level.",
+
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisableDefaultBrowserAgent": true,
+    "DisablePocket": true,
+    "DisableFirefoxAccounts": false,
+    "DisableFeedbackCommands": true,
+    "DisableFormHistory": false,
+
+    "DisableSystemAddonUpdate": true,
+
+    "DisableSetDesktopBackground": false,
+
+    "DontCheckDefaultBrowser": true,
+
+    "EnableTrackingProtection": {
+      "Value": true,
+      "Locked": true,
+      "Cryptomining": true,
+      "Fingerprinting": true,
+      "EmailTracking": true
+    },
+
+    "FirefoxHome": {
+      "Search": true,
+      "TopSites": false,
+      "SponsoredTopSites": false,
+      "Highlights": false,
+      "Pocket": false,
+      "SponsoredPocket": false,
+      "Snippets": false,
+      "Locked": true
+    },
+
+    "FirefoxSuggest": {
+      "WebSuggestions": false,
+      "SponsoredSuggestions": false,
+      "ImproveSuggest": false,
+      "Locked": true
+    },
+
+    "UserMessaging": {
+      "WhatsNew": false,
+      "ExtensionRecommendations": false,
+      "FeatureRecommendations": false,
+      "UrlbarInterventions": false,
+      "SkipOnboarding": true,
+      "MoreFromMozilla": false,
+      "Locked": true
+    },
+
+    "SearchSuggestEnabled": false,
+
+    "NetworkPrediction": false,
+
+    "PaymentMethods": {
+      "Enabled": false
+    },
+
+    "Permissions": {
+      "Location": {
+        "BlockNewRequests": false,
+        "Default": false
+      }
+    },
+
+    "Preferences": {
+      "datareporting.policy.dataSubmissionEnabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "datareporting.healthreport.uploadEnabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "app.shield.optoutstudies.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "app.normandy.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "network.captive-portal-service.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "network.connectivity-service.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "privacy.resistFingerprinting": {
+        "Value": true,
+        "Status": "default"
+      }
+    },
+
+    "OverrideFirstRunPage": "",
+    "OverridePostUpdatePage": ""
+  }
+}

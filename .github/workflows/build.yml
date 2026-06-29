@@ -1,0 +1,151 @@
+name: Build Sanctum (Windows)
+
+# -----------------------------------------------------------------------------
+#  Builds the privacy-hardened Sanctum browser from Firefox source on a Windows
+#  runner, then publishes a portable ZIP + (optionally signed) installer.
+#
+#  Triggers:
+#    - manual  (Actions tab -> "Run workflow"), with source-ref / jobs inputs
+#    - pushing a tag like v1.0 (also creates a GitHub Release with the artifacts)
+#
+#  Code signing is OPTIONAL. Add these repository secrets to sign automatically:
+#    SANCTUM_SIGN_PFX_BASE64     base64 of your code-signing .pfx
+#    SANCTUM_SIGN_PFX_PASSWORD   the .pfx password
+#  Without them the build still succeeds and produces UNSIGNED artifacts.
+#  See CI.md for the full setup (incl. an Azure Trusted Signing alternative).
+# -----------------------------------------------------------------------------
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Firefox source branch or tag to build"
+        default: "esr140"
+        type: string
+      sign_all:
+        description: "Sign every bundled DLL too (slower)"
+        default: false
+        type: boolean
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write          # needed to create Releases on tag pushes
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 350     # GitHub-hosted hard cap is 360 min; see CI.md for self-hosted
+
+    env:
+      SANCTUM_SRC: C:\sanctum\firefox-src
+      MOZILLABUILD: C:\mozilla-build
+      MOZBUILD_STATE_PATH: C:\sanctum\.mozbuild
+      SANCTUM_SIGN_ALL: ${{ inputs.sign_all && '1' || '0' }}
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout Sanctum overlay
+        uses: actions/checkout@v4
+
+      - name: Report available disk
+        run: Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}}
+
+      - name: Install MozillaBuild
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\sanctum | Out-Null
+          $url = "https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe"
+          $out = "$env:RUNNER_TEMP\MozillaBuildSetup.exe"
+          Write-Host "Downloading MozillaBuild..."
+          Invoke-WebRequest -Uri $url -OutFile $out
+          Write-Host "Installing silently..."
+          Start-Process -FilePath $out -ArgumentList '/S' -Wait
+          $bash = "$env:MOZILLABUILD\msys2\usr\bin\bash.exe"
+          if (-not (Test-Path $bash)) { throw "MozillaBuild bash not found at $bash after install" }
+          Write-Host "MozillaBuild ready: $bash"
+
+      - name: Setup sccache (compile cache)
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+      - name: Cache build toolchain (.mozbuild)
+        uses: actions/cache@v4
+        with:
+          path: C:\sanctum\.mozbuild
+          key: mozbuild-${{ runner.os }}-${{ inputs.source_ref || 'esr140' }}-${{ hashFiles('mozconfig') }}
+          restore-keys: |
+            mozbuild-${{ runner.os }}-${{ inputs.source_ref || 'esr140' }}-
+            mozbuild-${{ runner.os }}-
+
+      - name: Fetch Firefox source
+        run: ./scripts/01-fetch-source.ps1 -SourceRef "${{ inputs.source_ref || 'esr140' }}"
+
+      - name: Bootstrap toolchain
+        run: ./scripts/00-bootstrap.ps1
+
+      - name: Apply Sanctum privacy overlay (+ audit)
+        run: ./scripts/02-apply-overlay.ps1
+
+      - name: Enable sccache in the build config
+        run: Get-Content scripts/ci/mozconfig-ci.append | Add-Content "$env:SANCTUM_SRC\.mozconfig"
+
+      - name: Build
+        run: ./scripts/03-build.ps1 -Jobs 0
+
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats
+
+      - name: Package (+ sign if secrets present)
+        env:
+          SANCTUM_SIGN_PFX_BASE64: ${{ secrets.SANCTUM_SIGN_PFX_BASE64 }}
+          SANCTUM_SIGN_PFX_PASSWORD: ${{ secrets.SANCTUM_SIGN_PFX_PASSWORD }}
+          SANCTUM_SIGN_THUMBPRINT: ${{ secrets.SANCTUM_SIGN_THUMBPRINT }}
+          SANCTUM_SIGN_TIMESTAMP_URL: ${{ vars.SANCTUM_SIGN_TIMESTAMP_URL }}
+        run: ./scripts/04-package.ps1
+
+      - name: Generate checksums
+        run: |
+          $outDir = "dist"
+          Get-ChildItem $outDir -File | ForEach-Object {
+            $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$h  $($_.Name)"
+          } | Set-Content "$outDir\SHA256SUMS.txt"
+          Get-Content "$outDir\SHA256SUMS.txt"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanctum-win64
+          path: |
+            dist/*.zip
+            dist/*.installer.exe
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.installer.exe
+            dist/SHA256SUMS.txt
+          generate_release_notes: true
+          body: |
+            Automated Sanctum build from `${{ inputs.source_ref || 'esr140' }}`.
+
+            **Privacy:** telemetry, crash reporting, the Windows default-browser
+            agent, and all data-reporting subsystems are compiled out; the master
+            switches are locked. See `PRIVACY.md` and verify with `VERIFY.md`.
+
+            Verify downloads against `SHA256SUMS.txt`. If signed, check the
+            Authenticode signature: `signtool verify /pa <file>`.

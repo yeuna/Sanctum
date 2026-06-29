@@ -1,0 +1,96 @@
+# =============================================================================
+#  Sanctum — privacy-hardened Firefox fork
+#  mozconfig : compile-time build configuration  (Windows x86_64 release)
+# =============================================================================
+#  Copy this file to the ROOT of your Firefox source checkout as ".mozconfig"
+#  (the build scripts in scripts/ do this for you).
+#
+#  PHILOSOPHY
+#  ----------
+#  Everything in this file that touches data collection removes it at COMPILE
+#  time, not merely by flipping a preference. A preference can be flipped back;
+#  a binary that was never built cannot phone home. The telemetry pipeline, the
+#  crash reporter, the Windows "default browser agent" daily task, and the
+#  Mozilla data-reporting glue are all compiled OUT here. Runtime preferences
+#  (prefs/sanctum.js) and a locked autoconfig (autoconfig/) are layered on top
+#  as defense-in-depth.
+# =============================================================================
+
+# ------------------------------------------------------------------ build core
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-sanctum
+ac_add_options --enable-application=browser
+
+# Release-grade optimisation + hardening. NOTE: we deliberately do NOT export
+# MOZILLA_OFFICIAL=1. Leaving it unset keeps MOZ_TELEMETRY_ON_BY_DEFAULT and the
+# telemetry-reporting defines undefined, so this is an "unofficial" build that
+# never enables the data pipeline in the first place.
+ac_add_options --enable-release
+ac_add_options --enable-optimize
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+ac_add_options --disable-debug-symbols
+
+# Update channel label shown in the UI. The in-app updater stays compiled in so
+# users still receive SECURITY updates; the *background* update agent and update
+# pings are disabled via prefs (prefs/sanctum.js), not here.
+ac_add_options --enable-update-channel=release
+
+# --------------------------------------------------------------- our identity
+ac_add_options --with-branding=browser/branding/sanctum
+ac_add_options --with-app-name=sanctum
+ac_add_options --with-distribution-id=org.sanctumbrowser
+
+# ===========================================================================
+#  DATA-COLLECTION REMOVAL  (the heart of Sanctum)
+# ===========================================================================
+
+# 1) Crash reporter (Breakpad/Socorro). Compiling it out removes the minidump
+#    uploader binary entirely — no crash data can ever be transmitted.
+ac_add_options --disable-crashreporter
+
+# 2) Windows "default browser agent": a scheduled task that pings Mozilla
+#    Remote Settings every 24h and submits a default-browser telemetry ping.
+#    Disabling it here means the binary is NEVER PACKAGED and no scheduled task
+#    is ever registered. This is the only complete fix — the pref/policy merely
+#    silence an agent that still exists.
+ac_add_options --disable-default-browser-agent
+
+# 3) Telemetry / data-reporting / health-report / Normandy build flags.
+#    Unsetting these environment options leaves the corresponding C++ #defines
+#    undefined, so the unified telemetry pipeline, FHR upload glue, and the
+#    Normandy remote-control client are excluded from the build.
+#    (We also do NOT export MOZILLA_OFFICIAL=1; without it these defines stay
+#    undefined by default. The unsets below guarantee they aren't inherited from
+#    a parent shell environment.)
+unset MOZ_TELEMETRY_REPORTING
+unset MOZ_DATA_REPORTING
+unset MOZ_SERVICES_HEALTHREPORT
+unset MOZ_NORMANDY
+
+# 4) Telemetry "on by default" guard. Force it off regardless of channel so a
+#    release/ESR channel label can never re-arm telemetry collection.
+mk_add_options "export MOZ_TELEMETRY_ON_BY_DEFAULT=0"
+
+# ===========================================================================
+#  USER FREEDOM
+# ===========================================================================
+
+# Allow installation of unsigned / self-built extensions without forcing a trip
+# through addons.mozilla.org. Privacy tools are often unlisted; users should not
+# be required to identify themselves to AMO to run them.
+export MOZ_REQUIRE_SIGNING=
+
+# ---------------------------------------------------------------- performance
+# mach auto-detects the core count; override per build with `mach build -jN`.
+# (Do not hand-set "-j0" here — it is not a valid make flag.)
+
+# Optional: link-time optimisation + PGO give a meaningful speed win but greatly
+# increase build time/RAM. Uncomment on a machine with >=32 GB RAM.
+# ac_add_options MOZ_LTO=cross
+# ac_add_options --enable-profile-guided-optimization
+
+# ---------------------------------------------------------------------- notes
+# We intentionally KEEP the in-app updater (security). If you want a fully
+# air-gapped build with zero update machinery, add:
+#   ac_add_options --disable-updater
+# and ship updates by hand.

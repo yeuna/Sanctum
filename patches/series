@@ -1,0 +1,7 @@
+# One patch filename per line, applied in order by scripts/02-apply-overlay.ps1.
+# Sanctum ships with NO raw source diffs by default — the mozconfig + prefs +
+# autoconfig + policies layers already remove all data collection. Add your own
+# C++/Rust/JS patches below if you want binary-level removal.
+#
+# Example:
+# 0001-my-change.patch

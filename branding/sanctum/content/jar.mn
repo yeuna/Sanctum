@@ -1,0 +1,11 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+% content branding %content/branding/ contentaccessible=yes
+  content/branding/about-logo.png             (about-logo.png)
+  content/branding/about-logo@2x.png          (about-logo@2x.png)
+  content/branding/about-wordmark.svg         (about-wordmark.svg)
+  content/branding/icon64.png                 (icon64.png)
+  content/branding/identity-icons-brand.svg   (identity-icons-brand.svg)
+  content/branding/firefox.svg                (firefox.svg)

@@ -1,0 +1,10 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!-- Wordmark shown on the about:sanctum / about dialog. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 200 40" fill="none">
+  <text x="0" y="29"
+        font-family="-apple-system, 'Segoe UI', Ubuntu, system-ui, sans-serif"
+        font-size="30" font-weight="700" letter-spacing="-0.5"
+        fill="currentColor">Sanctum</text>
+</svg>

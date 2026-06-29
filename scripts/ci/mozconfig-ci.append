@@ -1,0 +1,12 @@
+# -----------------------------------------------------------------------------
+#  CI-only mozconfig fragment (appended to .mozconfig by the GitHub workflow).
+#  Do NOT use locally unless you have sccache installed — it speeds up CI by
+#  caching compiled objects across runs. It contains NOTHING that affects the
+#  privacy guarantees; it only changes how the compiler is invoked.
+# -----------------------------------------------------------------------------
+ac_add_options --with-ccache=sccache
+
+# The mozilla-actions/sccache-action sets SCCACHE_GHA_ENABLED + ACTIONS_* tokens
+# in the environment; this makes the GitHub Actions cache the sccache backend.
+mk_add_options "export CARGO_INCREMENTAL=0"
+mk_add_options "export RUSTC_WRAPPER=sccache"

@@ -1,0 +1,29 @@
+# Firefox source checkout (fetched by scripts/01-fetch-source.ps1)
+/firefox-src/
+
+# Build object dir (also created inside firefox-src per mozconfig)
+/obj-sanctum/
+**/obj-sanctum/
+
+# Packaged output
+/dist/
+
+# OS / editor noise
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Generated icons — reproduced deterministically by branding/sanctum/generate-icons.py
+# (kept out of git so the repo stays 100% text & auditable; the build regenerates them).
+branding/sanctum/default*.png
+branding/sanctum/*.ico
+branding/sanctum/content/*.png
+assets/*.png
