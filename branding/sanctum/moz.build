@@ -7,6 +7,29 @@
 with Files("**"):
     BUG_COMPONENT = ("Sanctum", "Branding")
 
+# Branding default preferences (vendor / support / release-notes URLs). Sanctum
+# is a non-official branding, so these are plain (non-preprocessed) pref files,
+# exactly as browser/branding/branding-common.mozbuild does for non-official.
+JS_PREFERENCE_FILES += [
+    "pref/firefox-branding.js",
+]
+
+# Windows Start-menu / taskbar "live tile" art. browser/installer/
+# package-manifest.in lists these six paths UNCONDITIONALLY for Windows
+# (inside #ifndef XP_UNIX), so packaging fails if the branding does not stage
+# them. This mirrors the FirefoxBranding() template in branding-common.mozbuild.
+if CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
+    FINAL_TARGET_FILES[".."] += [
+        "firefox.VisualElementsManifest.xml",
+        "private_browsing.VisualElementsManifest.xml",
+    ]
+    FINAL_TARGET_FILES.VisualElements += [
+        "PrivateBrowsing_150.png",
+        "PrivateBrowsing_70.png",
+        "VisualElements_150.png",
+        "VisualElements_70.png",
+    ]
+
 # The window/taskbar icon PNGs (default*.png) and the .ico files in this
 # directory are consumed directly by browser/app and browser/installer via the
 # configured branding path (--with-branding=browser/branding/sanctum); they do

@@ -120,12 +120,25 @@ def main():
     cache[128].save(os.path.join(CONTENT, "about-logo.png"))
     cache[256].save(os.path.join(CONTENT, "about-logo@2x.png"))
     cache[512].save(os.path.join(CONTENT, "firefox.png"))
-    cache[70].save(os.path.join(CONTENT, "VisualElements_70.png"))
-    cache[150].save(os.path.join(CONTENT, "VisualElements_150.png"))
+
+    # Windows Start-menu / taskbar tile art. These live at the BRANDING ROOT
+    # (not content/): branding/sanctum/moz.build stages them into the package
+    # via FINAL_TARGET_FILES.VisualElements, and browser/installer/
+    # package-manifest.in lists all four unconditionally for Windows. The
+    # PrivateBrowsing_* tiles reuse the logo (visual polish can come later).
+    cache[70].save(os.path.join(HERE, "VisualElements_70.png"))
+    cache[150].save(os.path.join(HERE, "VisualElements_150.png"))
+    cache[70].save(os.path.join(HERE, "PrivateBrowsing_70.png"))
+    cache[150].save(os.path.join(HERE, "PrivateBrowsing_150.png"))
 
     ico = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
     cache[256].save(os.path.join(HERE, "firefox.ico"), sizes=ico)
     cache[256].save(os.path.join(HERE, "document.ico"), sizes=ico)
+    # pbmode.ico is required by browser/app/pbproxy (the private-browsing proxy
+    # exe): its pbproxy.rc has `1 ICON @PBMODE_ICO@` pointing at
+    # <branding>/pbmode.ico. Without this file llvm-rc fails with
+    # "Error in ICON statement (ID 1): no such file or directory".
+    cache[256].save(os.path.join(HERE, "pbmode.ico"), sizes=ico)
 
     cache[512].save(os.path.join(ASSETS, "sanctum-logo.png"))
     print("Generated all Sanctum icons (PNG + ICO).")
