@@ -28,4 +28,6 @@ branding/sanctum/*.ico
 branding/sanctum/content/*.png
 branding/sanctum/VisualElements_*.png
 branding/sanctum/PrivateBrowsing_*.png
+branding/sanctum/*.bmp
+branding/sanctum/stubinstaller/bgstub.jpg
 assets/*.png

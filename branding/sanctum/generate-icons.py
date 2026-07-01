@@ -141,6 +141,37 @@ def main():
     for name in ("firefox", "document", "newwindow", "newtab", "pbmode", "document_pdf"):
         cache[256].save(os.path.join(HERE, name + ".ico"), sizes=ico)
 
+    # --- Windows installer art -------------------------------------------
+    # browser/installer/windows/Makefile.in copies BRANDING_FILES from the
+    # branding dir at BUILD time (instgen/helper.exe depends on them), so all
+    # of these must exist or `mach build` dies in the libs tier with
+    # "No rule to make target '<branding>/branding.nsi'".
+    cache[64].save(os.path.join(HERE, "firefox64.ico"), sizes=[(64, 64)])
+
+    def gradient_panel(size, logo_px):
+        """Brand-gradient RGB panel with the logo centered (24-bit, no alpha:
+        NSIS wizard bitmaps must be plain BMPs)."""
+        w, h = size
+        img = Image.new("RGB", size)
+        px = img.load()
+        for y in range(h):
+            row = lerp(TOP, BOT, y / max(h - 1, 1))
+            for x in range(w):
+                px[x, y] = row
+        logo = cache[logo_px]
+        img.paste(logo, ((w - logo_px) // 2, (h - logo_px) // 2), logo)
+        return img
+
+    gradient_panel((150, 57), 48).save(os.path.join(HERE, "wizHeader.bmp"))
+    gradient_panel((150, 57), 48).transpose(Image.FLIP_LEFT_RIGHT).save(
+        os.path.join(HERE, "wizHeaderRTL.bmp"))
+    gradient_panel((164, 314), 128).save(os.path.join(HERE, "wizWatermark.bmp"))
+
+    stub = os.path.join(HERE, "stubinstaller")
+    os.makedirs(stub, exist_ok=True)
+    gradient_panel((700, 360), 150).save(
+        os.path.join(stub, "bgstub.jpg"), quality=90)
+
     cache[512].save(os.path.join(ASSETS, "sanctum-logo.png"))
     print("Generated all Sanctum icons (PNG + ICO).")
 
