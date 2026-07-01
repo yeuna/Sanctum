@@ -94,7 +94,24 @@ jobs:
         run: ./scripts/02-apply-overlay.ps1
 
       - name: Enable sccache in the build config
-        run: Get-Content scripts/ci/mozconfig-ci.append | Add-Content "$env:SANCTUM_SRC\.mozconfig"
+        run: |
+          # The sccache-action installs sccache and exports SCCACHE_PATH. We must
+          # feed configure the ABSOLUTE path: passing the bare name "sccache" makes
+          # Firefox treat it as a bootstrappable toolchain and look for it under
+          # .mozbuild\sccache\sccache.exe (which mach bootstrap never populates),
+          # so configure dies with "FileNotFoundError [WinError 2]".
+          $sccache = $env:SCCACHE_PATH
+          if (-not $sccache) { throw "SCCACHE_PATH not set — did the sccache-action step run?" }
+          $sccache = $sccache -replace '\\', '/'          # bash sources .mozconfig; use forward slashes
+          if (-not $sccache.EndsWith('.exe')) { $sccache = "$sccache.exe" }
+          if (-not (Test-Path $sccache)) { throw "sccache binary not found at $sccache" }
+          Write-Host "Using sccache: $sccache"
+          # Both the C/C++ ccache and the Rust wrapper must use the ABSOLUTE path.
+          # configure resolves a bare "sccache" (from RUSTC_WRAPPER) to the same
+          # unpopulated .mozbuild bootstrap path and dies in check_sccache_version.
+          Add-Content "$env:SANCTUM_SRC\.mozconfig" "ac_add_options --with-ccache=$sccache"
+          Add-Content "$env:SANCTUM_SRC\.mozconfig" "mk_add_options `"export RUSTC_WRAPPER=$sccache`""
+          Get-Content scripts/ci/mozconfig-ci.append | Add-Content "$env:SANCTUM_SRC\.mozconfig"
 
       - name: Build
         run: ./scripts/03-build.ps1 -Jobs 0

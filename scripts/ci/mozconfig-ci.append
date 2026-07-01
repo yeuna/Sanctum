@@ -4,9 +4,14 @@
 #  caching compiled objects across runs. It contains NOTHING that affects the
 #  privacy guarantees; it only changes how the compiler is invoked.
 # -----------------------------------------------------------------------------
-ac_add_options --with-ccache=sccache
+# NOTE: the ccache/rustc-wrapper lines that point at sccache are written by the
+# "Enable sccache in the build config" workflow step, which resolves the ABSOLUTE
+# sccache path from $SCCACHE_PATH:
+#     ac_add_options --with-ccache=<abs path>
+#     mk_add_options "export RUSTC_WRAPPER=<abs path>"
+# Passing the bare name "sccache" makes configure look under
+# .mozbuild\sccache\sccache.exe (never populated) and die, so don't set it here.
 
 # The mozilla-actions/sccache-action sets SCCACHE_GHA_ENABLED + ACTIONS_* tokens
 # in the environment; this makes the GitHub Actions cache the sccache backend.
 mk_add_options "export CARGO_INCREMENTAL=0"
-mk_add_options "export RUSTC_WRAPPER=sccache"
