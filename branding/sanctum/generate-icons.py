@@ -132,13 +132,14 @@ def main():
     cache[150].save(os.path.join(HERE, "PrivateBrowsing_150.png"))
 
     ico = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
-    cache[256].save(os.path.join(HERE, "firefox.ico"), sizes=ico)
-    cache[256].save(os.path.join(HERE, "document.ico"), sizes=ico)
-    # pbmode.ico is required by browser/app/pbproxy (the private-browsing proxy
-    # exe): its pbproxy.rc has `1 ICON @PBMODE_ICO@` pointing at
-    # <branding>/pbmode.ico. Without this file llvm-rc fails with
-    # "Error in ICON statement (ID 1): no such file or directory".
-    cache[256].save(os.path.join(HERE, "pbmode.ico"), sizes=ico)
+    # browser/app/moz.build loops over exactly these six branding icons and
+    # browser/app/splash.rc has an ICON statement for each; browser/app/pbproxy
+    # also needs pbmode.ico. Any missing file makes llvm-rc fail the resource
+    # compile with "Error in ICON statement (ID N): no such file or directory".
+    # We render every one from the same logo (visual differentiation can come
+    # later); what matters for the build is that all six .ico files exist.
+    for name in ("firefox", "document", "newwindow", "newtab", "pbmode", "document_pdf"):
+        cache[256].save(os.path.join(HERE, name + ".ico"), sizes=ico)
 
     cache[512].save(os.path.join(ASSETS, "sanctum-logo.png"))
     print("Generated all Sanctum icons (PNG + ICO).")
