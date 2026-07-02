@@ -7,6 +7,15 @@
 with Files("**"):
     BUG_COMPONENT = ("Sanctum", "Branding")
 
+# CRITICAL: the branding directory is included in the build graph from outside
+# browser/, so it does NOT inherit browser/moz.build's DIST_SUBDIR export.
+# Upstream branding moz.builds set it explicitly, and so must we — without it
+# FINAL_TARGET is dist/bin instead of dist/bin/browser and every install below
+# (and the jar manifests in content/ and locales/) lands one level too high,
+# which `mach package` then reports as "Missing file(s): bin/browser/...".
+DIST_SUBDIR = "browser"
+export("DIST_SUBDIR")
+
 # Branding default preferences (vendor / support / release-notes URLs). Sanctum
 # is a non-official branding, so these are plain (non-preprocessed) pref files,
 # exactly as browser/branding/branding-common.mozbuild does for non-official.
