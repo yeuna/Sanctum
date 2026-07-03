@@ -17,21 +17,26 @@ pref("startup.homepage_override_url", "");
 pref("startup.homepage_welcome_url", "");
 pref("startup.homepage_welcome_url.additional", "");
 
-// Release notes / support / vendor URLs are shown only on explicit user click;
-// keep them local/blank so nothing is contacted implicitly.
-pref("app.releaseNotesURL", "about:blank");
-pref("app.releaseNotesURL.aboutDialog", "about:blank");
-pref("app.releaseNotesURL.prompt", "about:blank");
+// Release notes / support / vendor URLs are opened only on explicit user
+// click, so pointing them at the project's GitHub is consistent with the
+// zero-IMPLICIT-contact principle: nothing is fetched until the user asks.
+pref("app.releaseNotesURL", "https://github.com/yeuna/Sanctum/releases");
+pref("app.releaseNotesURL.aboutDialog", "https://github.com/yeuna/Sanctum/releases");
+pref("app.releaseNotesURL.prompt", "https://github.com/yeuna/Sanctum/releases");
 
-// "Get help", "Report site issue" and feedback endpoints — blanked.
-pref("app.support.baseURL", "about:blank");
-pref("app.feedback.baseURL", "about:blank");
-pref("app.update.url.details", "about:blank");
-pref("app.update.url.manual", "about:blank");
+// Firefox COMPOSES support links as baseURL + topic slug (e.g. "firefox-help"),
+// so a plain page here would break ("about:blank" + slug = invalid URL, which
+// made Help -> Sanctum Support error out). End the base with "#" so any
+// appended slug becomes a harmless fragment and the user lands on the repo.
+pref("app.support.baseURL", "https://github.com/yeuna/Sanctum#");
+// Feedback endpoint (menu item is hidden by DisableFeedbackCommands policy).
+pref("app.feedback.baseURL", "https://github.com/yeuna/Sanctum/issues#");
+pref("app.update.url.details", "https://github.com/yeuna/Sanctum/releases");
+pref("app.update.url.manual", "https://github.com/yeuna/Sanctum/releases");
 
-// Vendor URL shown in About — point at the local project page, not a server.
-pref("app.vendorURL", "about:blank");
-pref("app.privacyURL", "about:blank");
+// Vendor / privacy-policy links in the About dialog.
+pref("app.vendorURL", "https://github.com/yeuna/Sanctum");
+pref("app.privacyURL", "https://github.com/yeuna/Sanctum/blob/main/PRIVACY.md");
 
 // Profile-down / "your profile cannot be loaded" support link — local.
 pref("browser.geolocation.warning.infoURL", "about:blank");
