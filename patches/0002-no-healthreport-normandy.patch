@@ -1,0 +1,31 @@
+Stop the browser app from implying MOZ_SERVICES_HEALTHREPORT and MOZ_NORMANDY.
+
+Both are project_flags that ONLY accept implied values (possible_origins=
+("implied",)), so no mozconfig or environment setting can turn them off —
+deleting the imply_option lines is the only way, and it is equivalent to how
+Thunderbird ships without them.
+
+Effects of MOZ_NORMANDY being unset (all call sites are guarded upstream):
+ - BrowserComponents.manifest: the "browser-before-ui-startup ...
+   Normandy.init" category registration is preprocessed out, so the Normandy
+   recipe runner can never start;
+ - AppConstants.MOZ_NORMANDY becomes false (FirstStartup, Troubleshoot);
+ - the Studies section of about:preferences#privacy is compiled out.
+
+MOZ_SERVICES_HEALTHREPORT has exactly one consumer besides this line: the
+MOZ_DATA_REPORTING derivation (telemetry|healthreport|crashreporter|normandy).
+With telemetry reporting off (mozconfig), the crash reporter disabled
+(--disable-crashreporter), and these two implies gone, MOZ_DATA_REPORTING is
+false and the FHR/data-choices upload glue is excluded from the build.
+
+diff --git a/browser/moz.configure b/browser/moz.configure
+--- a/browser/moz.configure
++++ b/browser/moz.configure
+@@ -7,7 +7,5 @@
+ imply_option("MOZ_PLACES", True)
+-imply_option("MOZ_SERVICES_HEALTHREPORT", True)
+ imply_option("MOZ_SERVICES_SYNC", True)
+ imply_option("MOZ_DEDICATED_PROFILES", True)
+ imply_option("MOZ_BLOCK_PROFILE_DOWNGRADE", True)
+-imply_option("MOZ_NORMANDY", True)
+ imply_option("MOZ_PROFILE_MIGRATOR", True)

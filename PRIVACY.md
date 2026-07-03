@@ -56,17 +56,16 @@ default-preferences layer.
 ### 3.1 Telemetry & data reporting — *compiled out + locked*
 
 The unified telemetry pipeline and the Firefox Health Report uploader are
-excluded from the build by passing `MOZ_TELEMETRY_REPORTING=`,
-`MOZ_SERVICES_HEALTHREPORT=`, and `MOZ_NORMANDY=` as **empty configure
-options** (merely unsetting the environment variables is NOT enough — the
-browser app implies healthreport/normandy ON, and an absent variable lets the
-implied default win; an explicit empty option overrides it).
-`MOZ_DATA_REPORTING` has no option of its own and derives from
-telemetry|healthreport|crashreporter|normandy, so it goes away with them.
-The standalone **pingsender** transmitter binary, which upstream builds and
-packages unconditionally, is removed at the source level by
-`patches/0001-remove-pingsender.patch`. As defense-in-depth the following are
-set and the masters are **locked**:
+excluded from the build: `MOZ_TELEMETRY_REPORTING=` is pinned empty in the
+mozconfig, and `MOZ_SERVICES_HEALTHREPORT` / `MOZ_NORMANDY` are removed by
+`patches/0002-no-healthreport-normandy.patch` (they are implied-only project
+flags — no mozconfig or environment setting can disable them; unsetting the
+env vars is silently ignored). `MOZ_DATA_REPORTING` has no option of its own
+and derives from telemetry|healthreport|crashreporter|normandy, so it goes
+away with them. The standalone **pingsender** transmitter binary, which
+upstream builds and packages unconditionally, is removed at the source level
+by `patches/0001-remove-pingsender.patch`. As defense-in-depth the following
+are set and the masters are **locked**:
 
 | Preference | Value | Why |
 |---|---|---|
@@ -83,8 +82,15 @@ set and the masters are **locked**:
 
 ### 3.2 Normandy / Shield (remote control) — *compiled out + locked*
 
-`MOZ_NORMANDY` is unset, removing Mozilla's remote system that can push prefs,
-studies, and rollouts to your browser. `app.normandy.enabled=false 🔒` and
+`MOZ_NORMANDY` is removed at the source level
+(`patches/0002-no-healthreport-normandy.patch`): the
+`Normandy.init` startup registration in `BrowserComponents.manifest` is
+preprocessed out, so Mozilla's remote system that can push prefs, studies,
+and rollouts can never start, and the Studies UI is compiled out of
+about:preferences. (The inert Normandy JS modules still exist inside omni.ja
+because sibling components import helper code from that directory; with no
+registration, `AppConstants.MOZ_NORMANDY=false`, and the locked prefs below,
+there is no code path that runs them.) `app.normandy.enabled=false` 🔒 and
 `app.normandy.api_url=""` 🔒 ensure no recipe server is ever contacted.
 
 ### 3.3 Crash reporter — *compiled out*
