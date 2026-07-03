@@ -53,7 +53,8 @@ if ($LASTEXITCODE -ne 0) { Die "harden_sources apply failed" }
 # --- 4. source patches (optional) ---------------------------------------
 $series = Join-Path $RepoRoot "patches\series"
 if (Test-Path $series) {
-    $patches = Get-Content $series | Where-Object { $_ -and -not $_.StartsWith("#") }
+    # @() so a single-entry series stays an array (a scalar string has no .Count)
+    $patches = @(Get-Content $series | Where-Object { $_ -and -not $_.StartsWith("#") })
     if ($patches) {
         Write-Step "Applying $($patches.Count) source patch(es)"
         Push-Location $SrcDir
