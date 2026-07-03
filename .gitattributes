@@ -1,0 +1,4 @@
+# Patch files are byte-sensitive: CRLF checkout corrupts context lines and
+# git apply rejects them. Never convert their line endings.
+*.patch -text
+patches/series text eol=lf
