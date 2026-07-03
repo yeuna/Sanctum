@@ -1,0 +1,20 @@
+Point the About dialog "Make a donation" link at the project's own page.
+
+Firefox hardcodes the donate link to foundation.mozilla.org in
+aboutDialog.xhtml (there is no pref for it). Sanctum is not a Mozilla
+project, so donations should go to the maintainer. Opens only on explicit
+user click. (The neighbouring "get involved" link still points upstream;
+left as-is for now.)
+
+diff --git a/browser/base/content/aboutDialog.xhtml b/browser/base/content/aboutDialog.xhtml
+--- a/browser/base/content/aboutDialog.xhtml
++++ b/browser/base/content/aboutDialog.xhtml
+@@ -129,7 +129,7 @@
+             <label is="text-link" useoriginprincipal="true" href="about:credits" data-l10n-name="community-creditsLink"/>
+           </description>
+           <description class="text-blurb" id="contributeDesc" data-l10n-id="helpus">
+-            <label is="text-link" href="https://foundation.mozilla.org/?form=firefox-about" data-l10n-name="helpus-donateLink"/>
++            <label is="text-link" href="https://buymeacoffee.com/yeuna" data-l10n-name="helpus-donateLink"/>
+             <label is="text-link" href="https://www.mozilla.org/contribute/?utm_source=firefox-browser&#38;utm_medium=firefox-desktop&#38;utm_campaign=about-dialog" data-l10n-name="helpus-getInvolvedLink"/>
+           </description>
+         </vbox>

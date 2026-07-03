@@ -12,6 +12,9 @@
 
     "DisableSystemAddonUpdate": true,
 
+    "_comment_appupdate": "Sanctum runs no update server. The in-app updater identifies as MOZ_APP_BASENAME=Firefox on the 'release' channel, so its checks hit Mozilla's AUS, which offers mainstream FIREFOX updates that do not match a Sanctum build — they fail to apply and the About dialog retries forever. Disable the updater; ship updates via GitHub Releases (where the About/Help links point).",
+    "DisableAppUpdate": true,
+
     "DisableSetDesktopBackground": false,
 
     "DontCheckDefaultBrowser": true,

@@ -237,10 +237,16 @@ installer is also built to skip task registration.
 
 ### 3.18 Background update agent & first-run/what's-new phone-home
 
-The in-app updater is **kept** (security matters), but the *background* update
-agent is disabled (`app.update.background.scheduling.enabled=false`,
-`app.update.staging.enabled=false`) so nothing contacts the update server while
-Sanctum is closed. First-run, post-update, "what's new", UI-tour, VPN-promo, and
+The updater binary is compiled in, but **all automatic update checking is
+disabled** by the `DisableAppUpdate` policy. Sanctum runs no update server, and
+the built-in check identifies as `Firefox` on the `release` channel — so left
+enabled it would contact Mozilla's AUS and be offered mainstream Firefox
+updates that don't match a Sanctum build (they fail to apply and the About
+dialog retries forever). Disabling it removes that Mozilla contact entirely;
+**Sanctum updates ship via [GitHub Releases](https://github.com/yeuna/Sanctum/releases)**,
+which the About/Help links point to. The background update agent is also off
+(`app.update.background.scheduling.enabled=false`,
+`app.update.staging.enabled=false`). First-run, post-update, "what's new", UI-tour, VPN-promo, and
 "more from Mozilla" pages are blanked (`branding/sanctum/pref/firefox-branding.js`,
 `browser.startup.homepage_override.mstone="ignore"`, `browser.uitour.enabled=false`),
 so a fresh or freshly-updated profile makes **no** unsolicited request.
@@ -249,7 +255,7 @@ so a fresh or freshly-updated profile makes **no** unsolicited request.
 
 ## 4. What Sanctum deliberately keeps
 
-- **The in-app updater** — security updates outweigh the minimal version/OS/locale exchange an update check requires. (Build with `--disable-updater` if you want zero update machinery and patch by hand.)
+- **The updater binary** — compiled in but with automatic checking disabled (no Sanctum update server; see §3.18). It costs nothing at rest and leaves the door open for a signed-MAR update server later. Updates are delivered via GitHub Releases in the meantime.
 - **Mozilla tracking-protection lists** (`provider.mozilla.*`) — they power ETP and carry no per-user data.
 - **WebRTC** — disabling it breaks video calls; instead it's hardened against IP leaks.
 
@@ -262,7 +268,7 @@ or hardware-identifying data.
 
 - **Network destinations you choose** are still visible to your ISP/VPN and the sites themselves — Sanctum is not an anonymity network.
 - **Add-ons you install** can have their own telemetry; Sanctum can't police third-party extension code. Install deliberately.
-- **The in-app update check** contacts Mozilla's update server with coarse version/OS/locale data when it runs. Disable the updater for a fully air-gapped build.
+- **Update delivery is manual.** Because automatic update checking is disabled (Sanctum has no update server), you must watch [GitHub Releases](https://github.com/yeuna/Sanctum/releases) and install new versions yourself. This is the trade-off for not phoning any update server; a self-hosted signed-MAR update server could restore automatic updates without contacting Mozilla.
 - **resistFingerprinting can break sites** (canvas-heavy apps, some video). Use per-site exceptions rather than globally disabling RFP, to avoid standing out.
 
 See [VERIFY.md](VERIFY.md) to confirm these claims with your own packet capture.

@@ -30,9 +30,13 @@ ac_add_options --disable-debug
 ac_add_options --disable-tests
 ac_add_options --disable-debug-symbols
 
-# Update channel label shown in the UI. The in-app updater stays compiled in so
-# users still receive SECURITY updates; the *background* update agent and update
-# pings are disabled via prefs (prefs/sanctum.js), not here.
+# Update channel label shown in the UI. The updater binary stays compiled in
+# (so a future Sanctum update server, or a hand-applied MAR, could use it), but
+# AUTOMATIC update checking is turned OFF via the DisableAppUpdate enterprise
+# policy: Sanctum has no update server, and the built-in check identifies as
+# "Firefox" on the "release" channel, so it would otherwise hit Mozilla's AUS
+# and be offered mainstream Firefox updates that don't belong here. Sanctum
+# updates are distributed via GitHub Releases instead. See PRIVACY.md §3.18.
 ac_add_options --enable-update-channel=release
 
 # --------------------------------------------------------------- our identity
