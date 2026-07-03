@@ -93,6 +93,22 @@ jobs:
       - name: Fetch Firefox source
         run: ./scripts/01-fetch-source.ps1 -SourceRef "${{ inputs.source_ref || 'esr140' }}"
 
+      - name: Install Rust (rustup, pinned to Mozilla's win64 CI version)
+        run: |
+          # mach bootstrap does NOT provide a usable Windows rust: it caches a
+          # LINUX rustc-dist-toolchain artifact, and configure only searches the
+          # bootstrap toolchain dir under MOZ_AUTOMATION (Mozilla CI). Configure
+          # looks in $CARGO_HOME\bin next, so a pinned rustup install there is
+          # the supported path. 1.83.0 = win64-rust-1.83 in esr140 taskcluster.
+          $rustc = "$env:CARGO_HOME\bin\rustc.exe"
+          if (Test-Path $rustc) { & $rustc --version; exit 0 }
+          $ri = "$env:RUNNER_TEMP\rustup-init.exe"
+          Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile $ri
+          & $ri -y --profile minimal --default-toolchain 1.83.0 --no-modify-path
+          if ($LASTEXITCODE -ne 0) { throw "rustup-init failed with $LASTEXITCODE" }
+          if (-not (Test-Path $rustc)) { throw "rustc not found at $rustc after install" }
+          & $rustc --version
+
       - name: Bootstrap toolchain
         run: ./scripts/00-bootstrap.ps1
 
