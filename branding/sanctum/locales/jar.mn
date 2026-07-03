@@ -3,6 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# brand.ftl MUST be delivered through the [localization] jar so it lands at
+# localization/en-US/branding/brand.ftl inside omni.ja. The Fluent registry
+# only reads that per-locale path: a file at localization/branding/ (as a
+# plain FINAL_TARGET_FILES entry would produce) is invisible, every -brand-*
+# string resolves to null, and the browser chrome hangs at first paint.
+[localization] @AB_CD@.jar:
+  branding                                          (en-US/*.ftl)
+
 @AB_CD@.jar:
 % locale branding @AB_CD@ %locale/branding/
 # Sanctum branding only exists in en-US

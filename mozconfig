@@ -56,16 +56,21 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-default-browser-agent
 
 # 3) Telemetry / data-reporting / health-report / Normandy build flags.
-#    Unsetting these environment options leaves the corresponding C++ #defines
-#    undefined, so the unified telemetry pipeline, FHR upload glue, and the
-#    Normandy remote-control client are excluded from the build.
-#    (We also do NOT export MOZILLA_OFFICIAL=1; without it these defines stay
-#    undefined by default. The unsets below guarantee they aren't inherited from
-#    a parent shell environment.)
-unset MOZ_TELEMETRY_REPORTING
-unset MOZ_DATA_REPORTING
-unset MOZ_SERVICES_HEALTHREPORT
-unset MOZ_NORMANDY
+#    CRITICAL: `unset VAR` is NOT enough here. browser/moz.configure does
+#    imply_option("MOZ_SERVICES_HEALTHREPORT", True) and
+#    imply_option("MOZ_NORMANDY", True), and an ABSENT variable lets those
+#    implied defaults win (verified: a build with only unsets shipped with
+#    MOZ_NORMANDY=1 / MOZ_SERVICES_HEALTHREPORT=1 / MOZ_DATA_REPORTING=1 in
+#    config.status). Passing them as EMPTY configure options overrides the
+#    implied values and leaves the C++ #defines undefined, so the FHR upload
+#    glue and the Normandy remote-control client are excluded from the build.
+#    MOZ_TELEMETRY_REPORTING already defaults off for unofficial builds
+#    (no MOZILLA_OFFICIAL=1); we pin it anyway. MOZ_DATA_REPORTING has no
+#    option of its own — it derives from telemetry|healthreport|crashreporter|
+#    normandy, so with all four off it goes away too.
+ac_add_options MOZ_TELEMETRY_REPORTING=
+ac_add_options MOZ_SERVICES_HEALTHREPORT=
+ac_add_options MOZ_NORMANDY=
 
 # 4) Telemetry "on by default" guard. Force it off regardless of channel so a
 #    release/ESR channel label can never re-arm telemetry collection.

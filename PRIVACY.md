@@ -56,9 +56,17 @@ default-preferences layer.
 ### 3.1 Telemetry & data reporting — *compiled out + locked*
 
 The unified telemetry pipeline and the Firefox Health Report uploader are
-excluded from the build (`MOZ_TELEMETRY_REPORTING`, `MOZ_DATA_REPORTING`,
-`MOZ_SERVICES_HEALTHREPORT` unset). As defense-in-depth the following are set
-and the masters are **locked**:
+excluded from the build by passing `MOZ_TELEMETRY_REPORTING=`,
+`MOZ_SERVICES_HEALTHREPORT=`, and `MOZ_NORMANDY=` as **empty configure
+options** (merely unsetting the environment variables is NOT enough — the
+browser app implies healthreport/normandy ON, and an absent variable lets the
+implied default win; an explicit empty option overrides it).
+`MOZ_DATA_REPORTING` has no option of its own and derives from
+telemetry|healthreport|crashreporter|normandy, so it goes away with them.
+The standalone **pingsender** transmitter binary, which upstream builds and
+packages unconditionally, is removed at the source level by
+`patches/0001-remove-pingsender.patch`. As defense-in-depth the following are
+set and the masters are **locked**:
 
 | Preference | Value | Why |
 |---|---|---|

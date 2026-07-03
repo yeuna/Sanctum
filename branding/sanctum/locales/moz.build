@@ -6,6 +6,7 @@
 
 JAR_MANIFESTS += ["jar.mn"]
 
-# The Fluent brand bundle (brand.ftl) is delivered through the localization
-# system rather than the JAR, mirroring upstream Firefox.
-FINAL_TARGET_FILES.localization["branding"] += ["en-US/brand.ftl"]
+# brand.ftl is packaged by jar.mn's [localization] section (which puts it at
+# the per-locale path the Fluent registry actually reads). Do NOT add it via
+# FINAL_TARGET_FILES.localization — that lands at localization/branding/,
+# which Fluent never consults, and the browser UI breaks with null labels.

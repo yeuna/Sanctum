@@ -1,0 +1,37 @@
+Remove the pingsender binary from the build and the package.
+
+pingsender.exe is the standalone helper Firefox uses to transmit telemetry
+pings (notably at shutdown, when the main process can't wait on the network).
+Upstream builds and packages it UNCONDITIONALLY — even with telemetry
+reporting, health report, and Normandy compiled out, the transmitter binary
+still ships. Sanctum's principle is that transmission code must not exist in
+the binary at all, so drop it from the build DIRS and the package manifest.
+
+The BackgroundTask_pingsender.sys.mjs module it pairs with is inert without
+the binary and the (disabled+locked) telemetry callers, so it is left alone
+to keep this patch minimal and rebase-friendly.
+
+diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemetry/moz.build
+--- a/toolkit/components/telemetry/moz.build
++++ b/toolkit/components/telemetry/moz.build
+@@ -7,9 +7,5 @@
+ include("/ipc/chromium/chromium-config.mozbuild")
+
+ FINAL_LIBRARY = "xul"
+
+-DIRS = [
+-    "pingsender",
+-]
+-
+ if CONFIG["COMPILE_ENVIRONMENT"]:
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -397,7 +397,3 @@
+ #endif
+
+-; [ Ping Sender ]
+-;
+-@BINPATH@/pingsender@BIN_SUFFIX@
+-
+ ; [ Native Messaging Host Proxy ]
