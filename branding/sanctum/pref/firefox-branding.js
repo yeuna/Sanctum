@@ -38,6 +38,7 @@ pref("app.update.url.manual", "https://github.com/yeuna/Sanctum/releases");
 pref("app.vendorURL", "https://github.com/yeuna/Sanctum");
 pref("app.privacyURL", "https://github.com/yeuna/Sanctum/blob/main/PRIVACY.md");
 
-// Profile-down / "your profile cannot be loaded" support link — local.
-pref("browser.geolocation.warning.infoURL", "about:blank");
-pref("browser.xr.warning.infoURL", "about:blank");
+// "Learn more" links inside the geolocation / VR permission prompts.
+// about:blank was a dead end; the privacy doc explains both. Explicit click.
+pref("browser.geolocation.warning.infoURL", "https://github.com/yeuna/Sanctum/blob/main/PRIVACY.md#37-geolocation--region");
+pref("browser.xr.warning.infoURL", "https://github.com/yeuna/Sanctum/blob/main/PRIVACY.md");

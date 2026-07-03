@@ -71,6 +71,10 @@ pref("extensions.getAddons.cache.enabled", false);
 pref("extensions.htmlaboutaddons.recommendations.enabled", false);
 pref("extensions.webservice.discoverURL", "");
 pref("extensions.getAddons.discovery.api_url", "");
+// Hide the about:addons "Recommendations" pane entirely — its backend URLs
+// are blanked above, so leaving the pane visible shows a broken/empty page
+// (and it advertises what "Firefox recommends").
+pref("extensions.getAddons.showPane", false);
 
 /* ###########################################################################
  * 5. SAFE BROWSING  (Google)
