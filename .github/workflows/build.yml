@@ -43,9 +43,13 @@ jobs:
     timeout-minutes: 350
 
     env:
-      SANCTUM_SRC: C:\sanctum\firefox-src
+      SANCTUM_SRC: D:\sanctum\firefox-src
       MOZILLABUILD: C:\mozilla-build
-      MOZBUILD_STATE_PATH: C:\sanctum\.mozbuild
+      MOZBUILD_STATE_PATH: D:\sanctum\.mozbuild
+      # Keep the Rust toolchain on D: too (and out of the service account's
+      # profile — the runner runs as a Windows service, not as a logged-in user).
+      CARGO_HOME: D:\sanctum\.cargo
+      RUSTUP_HOME: D:\sanctum\.rustup
       SANCTUM_SIGN_ALL: ${{ inputs.sign_all && '1' || '0' }}
 
     defaults:
@@ -61,7 +65,7 @@ jobs:
 
       - name: Install MozillaBuild
         run: |
-          New-Item -ItemType Directory -Force -Path C:\sanctum | Out-Null
+          New-Item -ItemType Directory -Force -Path D:\sanctum | Out-Null
           $bash = "$env:MOZILLABUILD\msys2\usr\bin\bash.exe"
           if (Test-Path $bash) { Write-Host "MozillaBuild already installed: $bash"; exit 0 }
           $url = "https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe"
@@ -80,7 +84,7 @@ jobs:
       - name: Cache build toolchain (.mozbuild)
         uses: actions/cache@v4
         with:
-          path: C:\sanctum\.mozbuild
+          path: D:\sanctum\.mozbuild
           key: mozbuild-${{ runner.os }}-${{ inputs.source_ref || 'esr140' }}-${{ hashFiles('mozconfig') }}
           restore-keys: |
             mozbuild-${{ runner.os }}-${{ inputs.source_ref || 'esr140' }}-
