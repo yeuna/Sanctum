@@ -29,6 +29,15 @@ if (-not $appDir) {
 if (-not $appDir) { Die "Could not find packaged app under $distRoot" }
 Write-Ok "packaged app: $appDir"
 
+# --- build the NSIS installer machinery (setup.exe) ----------------------
+# This must run BEFORE the privacy layers are injected: the installer build
+# re-stages dist/<app> from the package manifest, which would wipe any files
+# we add. We only need the setup.exe it produces; the final installer is
+# assembled later from the injected + signed app directory.
+Write-Step "Building NSIS installer machinery (mach build installer)"
+Invoke-Mach "build installer" -NonFatal
+$installerBuilt = ($Global:MachExitCode -eq 0)
+
 # --- inject the locked privacy layers ------------------------------------
 Write-Step "Injecting locked autoconfig + policies into the package"
 New-Item -ItemType Directory -Force -Path (Join-Path $appDir "defaults\pref") | Out-Null
@@ -63,20 +72,44 @@ Compress-Archive -Path (Join-Path $appDir "*") -DestinationPath $zip
 Write-Ok "portable build -> $zip"
 
 # --- optional NSIS installer --------------------------------------------
+# Assemble the installer from the INJECTED + SIGNED app directory (not the
+# re-staged one `mach build installer` produced), so the installer ships the
+# same locked configuration as the portable ZIP. `mach repackage installer`
+# wraps <package zip> + setup.exe in the 7z self-extracting NSIS stub.
 Write-Step "Building Windows installer (mach repackage installer)"
-try {
-    Invoke-Mach "repackage installer"
-    $inst = Get-ChildItem $distRoot -Recurse -Filter "*.installer.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($inst) {
-        $instOut = Join-Path $outDir ("Sanctum-{0}-win64.installer.exe" -f $rev)
-        Copy-Item $inst.FullName $instOut -Force
+$setupExe = $null
+if ($installerBuilt) {
+    $setupExe = Get-ChildItem (Join-Path $SrcDir ($Sanctum.ObjDir + "\browser\installer\windows")) `
+                -Recurse -Filter "setup.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+}
+if (-not $setupExe) {
+    Write-Warn2 "NSIS setup.exe not available; skipping installer. The portable ZIP is fully usable."
+} else {
+    Invoke-CodeSign -Files @($setupExe.FullName)
+
+    # repackage expects a zip whose top-level directory is the app dir.
+    $pkgName = Split-Path $appDir -Leaf
+    $pkgZip = Join-Path $distRoot "sanctum-repack.zip"
+    if (Test-Path $pkgZip) { Remove-Item $pkgZip -Force }
+    Compress-Archive -Path $appDir -DestinationPath $pkgZip
+
+    $instOut = Join-Path $outDir ("Sanctum-{0}-win64.installer.exe" -f $rev)
+    $machArgs = "repackage installer" +
+        " --tag browser/installer/windows/app.tag" +
+        " --sfx-stub other-licenses/7zstub/firefox/7zSD.Win32.sfx" +
+        " --setupexe '$($setupExe.FullName -replace '\\', '/')'" +
+        " --package '$($pkgZip -replace '\\', '/')'" +
+        " --package-name '$pkgName'" +
+        " -o '$($instOut -replace '\\', '/')'"
+    Invoke-Mach $machArgs -NonFatal
+    Remove-Item $pkgZip -Force -ErrorAction SilentlyContinue
+
+    if ($Global:MachExitCode -eq 0 -and (Test-Path $instOut)) {
         Invoke-CodeSign -Files @($instOut)   # sign the installer itself
-        Write-Ok "installer -> dist/Sanctum-$rev-win64.installer.exe"
+        Write-Ok "installer -> dist/$(Split-Path $instOut -Leaf)"
     } else {
-        Write-Warn2 "Installer target produced no .exe; the portable ZIP is fully usable."
+        Write-Warn2 "Installer step failed; portable ZIP is the deliverable."
     }
-} catch {
-    Write-Warn2 "Installer step skipped/failed; portable ZIP is the deliverable. ($_)"
 }
 
 Write-Step "Packaging complete -> $outDir"

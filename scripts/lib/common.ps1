@@ -57,14 +57,23 @@ function ConvertTo-MsysPath($winPath) {
 }
 
 # Run a mach subcommand inside the source dir via MozillaBuild bash.
+# -NonFatal: warn instead of exiting on failure; callers can check
+# $Global:MachExitCode (Die would kill the script even inside try/catch).
 function Invoke-Mach {
-    param([Parameter(Mandatory)][string]$Args)
+    param(
+        [Parameter(Mandatory)][string]$Args,
+        [switch]$NonFatal
+    )
     $bash = Get-Bash
     $srcMsys = ConvertTo-MsysPath $SrcDir
     $cmd = "cd '$srcMsys' && ./mach $Args"
     Write-Host "  > mach $Args" -ForegroundColor DarkGray
     & $bash -lc $cmd
-    if ($LASTEXITCODE -ne 0) { Die "mach $Args failed (exit $LASTEXITCODE)" }
+    $Global:MachExitCode = $LASTEXITCODE
+    if ($LASTEXITCODE -ne 0) {
+        if ($NonFatal) { Write-Warn2 "mach $Args failed (exit $LASTEXITCODE)" }
+        else { Die "mach $Args failed (exit $LASTEXITCODE)" }
+    }
 }
 
 function Assert-SourceCheckout {
