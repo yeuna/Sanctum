@@ -21,6 +21,11 @@ if (Test-Path (Join-Path $SrcDir ".git")) {
     Write-Ok "Existing checkout found at $SrcDir — updating."
     Push-Location $SrcDir
     try {
+        # Persistent checkouts (self-hosted runners) still carry the previous
+        # run's overlay edits; reset tracked files so checkout succeeds and
+        # patches re-apply cleanly. Untracked files (branding, obj-sanctum)
+        # survive, which keeps incremental builds and the compile cache warm.
+        git reset --hard HEAD
         git fetch --tags origin $Sanctum.SourceRef
         git checkout $Sanctum.SourceRef
         git pull --ff-only origin $Sanctum.SourceRef 2>$null

@@ -39,8 +39,8 @@ concurrency:
 
 jobs:
   build:
-    runs-on: windows-2022
-    timeout-minutes: 350     # GitHub-hosted hard cap is 360 min; see CI.md for self-hosted
+    runs-on: [self-hosted, Windows, X64]   # runner "vril-9950x3d"; was windows-2022 (see CI.md)
+    timeout-minutes: 350
 
     env:
       SANCTUM_SRC: C:\sanctum\firefox-src
@@ -62,6 +62,8 @@ jobs:
       - name: Install MozillaBuild
         run: |
           New-Item -ItemType Directory -Force -Path C:\sanctum | Out-Null
+          $bash = "$env:MOZILLABUILD\msys2\usr\bin\bash.exe"
+          if (Test-Path $bash) { Write-Host "MozillaBuild already installed: $bash"; exit 0 }
           $url = "https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe"
           $out = "$env:RUNNER_TEMP\MozillaBuildSetup.exe"
           Write-Host "Downloading MozillaBuild..."
