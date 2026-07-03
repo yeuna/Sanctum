@@ -15,3 +15,10 @@
 # The mozilla-actions/sccache-action sets SCCACHE_GHA_ENABLED + ACTIONS_* tokens
 # in the environment; this makes the GitHub Actions cache the sccache backend.
 mk_add_options "export CARGO_INCREMENTAL=0"
+
+# Let configure use the mach-bootstrapped toolchains under MOZBUILD_STATE_PATH.
+# mach bootstrap ships rust as a dist-toolchain artifact (it does NOT install
+# rustup), and configure only extracts/uses it with bootstrap enabled — without
+# this it searches just PATH and ~/.cargo/bin and dies "Rust compiler not found"
+# (the runner service account has no rustup).
+ac_add_options --enable-bootstrap
